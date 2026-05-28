@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    
+    <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+        <div>
+            <h2 class="text-xl font-bold uppercase tracking-wider text-emerald-400">Chợ Cộng Đồng</h2>
+            <p class="text-xs text-slate-500">Xem danh sách vật phẩm hoặc đăng tải sản phẩm của cậu lên hệ thống.</p>
+        </div>
+        <button onclick="toggleModal(true)" class="bg-emerald-500 text-slate-950 font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-lg hover:bg-emerald-400 hover:scale-105 transition-all shadow-lg shadow-emerald-500/10">
+            <i class="fa-solid fa-plus mr-1"></i> Đăng Bán
+        </button>
+    </div>
+
+    {% if products %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for product in products %}
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col justify-between hover:border-emerald-500/40 transition-all shadow-md">
+            <div class="space-y-2">
+                <div class="flex justify-between items-start gap-2">
+                    <h4 class="font-bold text-slate-200 text-sm line-clamp-2">{{ product[1] }}</h4>
+                    <span class="text-xs font-extrabold text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/30 whitespace-nowrap">
+                        ${{ "{:,.2f}".format(product[3]) }}
+                    </span>
+                </div>
+                <p class="text-xs text-slate-400 line-clamp-3 leading-relaxed">{{ product[2] }}</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-900 text-[10px] text-slate-500 flex justify-between items-center">
+                <span><i class="fa-regular fa-clock mr-1"></i>{{ product[4][:16] }}</span>
+                <span class="text-slate-600">ID: #{{ product[0] }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="flex flex-col items-center justify-center py-20 text-center space-y-3">
+        <i class="fa-solid fa-box-open text-5xl text-slate-800"></i>
+        <h3 class="text-sm font-semibold text-slate-500">Chưa có sản phẩm nào được đăng bán</h3>
+        <p class="text-xs text-slate-600 max-w-xs">Hãy là người đầu tiên kích hoạt thị trường bằng cách bấm nút Đăng Bán ở trên!</p>
+    </div>
+    {% endif %}
+
+    <div id="productModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm uppercase tracking-wider text-slate-300">Đăng bán sản phẩm mới</h3>
+                <button onclick="toggleModal(false)" class="text-slate-500 hover:text-slate-300 transition text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <form id="productForm" onsubmit="submitProduct(event)" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Tên vật phẩm *</label>
+                    <input type="text" id="prodTitle" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Giá cả ($) *</label>
+                    <input type="number" id="prodPrice" step="0.01" required class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Mô tả sản phẩm</label>
+                    <textarea id="prodDesc" rows="3" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-900">
+                    <button type="button" onclick="toggleModal(false)" class="px-4 py-2 bg-slate-900 border border-slate-800 text-slate-400 font-semibold text-xs uppercase tracking-wider rounded-lg hover:bg-slate-800 transition-all">
+                        Hủy
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-slate-950 font-bold text-xs uppercase tracking-wider rounded-lg hover:bg-emerald-500 transition-all">
+                        Xác Nhận Đăng
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Hàm bật/tắt hiển thị của Pop-up Form bằng cách đóng mở class 'hidden'
+    function toggleModal(show) {
+        const modal = document.getElementById('productModal');
+        if (show) {
+            modal.classList.remove('hidden');
+        } else {
+            modal.classList.add('hidden');
+            document.getElementById('productForm').reset();
+        }
+    }
+
+    // Hàm gửi gói dữ liệu JSON của sản phẩm lên API Server Python
+    function submitProduct(event) {
+        event.preventDefault();
+        
+        const title = document.getElementById('prodTitle').value.trim();
+        const price = parseFloat(document.getElementById('prodPrice').value);
+        const description = document.getElementById('prodDesc').value.trim();
+
+        fetch('/api/marketplace', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ title, price, description })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Tải lại trang để cập nhật danh sách sản phẩm mới từ database lên màn hình
+                window.location.reload();
+            } else {
+                alert("Đã xảy ra lỗi khi đăng bán vật phẩm!");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("Không thể kết nối đến Server!");
+        });
+    }
+</script>
+{% endblock %}
