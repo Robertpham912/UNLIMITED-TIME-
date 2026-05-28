@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlimited Time</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col md:flex-row m-0 p-0 overflow-hidden">
+
+    <aside class="hidden md:flex flex-col w-64 bg-slate-950 border-r border-slate-800 p-4 space-y-6">
+        <a href="/" class="text-xl font-bold tracking-wider text-emerald-400 flex items-center space-x-2 hover:opacity-80 transition">
+            <i class="fa-solid fa-infinity"></i>
+            <span>Unlimited Time</span>
+        </a>
+        
+        <nav class="flex-1 space-y-2">
+            <a href="/" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition text-slate-300 hover:text-emerald-400">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span class="font-medium">Menu Chính</span>
+            </a>
+            <a href="/marketplace" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition text-slate-300 hover:text-emerald-400">
+                <i class="fa-solid fa-shop text-lg"></i>
+                <span class="font-medium">Marketplace</span>
+            </a>
+        </nav>
+        
+        <div class="border-t border-slate-800 pt-4 text-xs text-slate-500 text-center">
+            v1.0.0 - GitHub Project
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-h-0 bg-slate-900 pb-16 md:pb-0">
+        <div class="flex-1 overflow-y-auto p-4 md:p-6">
+            {% block content %}
+            <div class="flex flex-col items-center justify-center h-full text-center space-y-4">
+                <i class="fa-solid fa-circle-nodes text-6xl text-slate-700 animate-pulse"></i>
+                <h2 class="text-2xl font-semibold text-slate-400">Chào mừng đến với Unlimited Time</h2>
+                <p class="text-slate-500 max-w-md">Hãy chọn một tính năng ở menu để bắt đầu trải nghiệm không gian cộng đồng của cậu.</p>
+            </div>
+            {% endblock %}
+        </div>
+    </main>
+
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-950 border-t border-slate-800 flex justify-around items-center z-50">
+        <a href="/" class="flex flex-col items-center justify-center text-slate-400 hover:text-emerald-400 w-full h-full transition">
+            <i class="fa-solid fa-house text-xl"></i>
+            <span class="text-[10px] mt-1 font-medium">Menu</span>
+        </a>
+        <a href="/marketplace" class="flex flex-col items-center justify-center text-slate-400 hover:text-emerald-400 w-full h-full transition">
+            <i class="fa-solid fa-shop text-xl"></i>
+            <span class="text-[10px] mt-1 font-medium">Chợ</span>
+        </a>
+    </nav>
+
+</body>
+</html>
