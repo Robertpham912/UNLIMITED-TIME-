@@ -19,6 +19,7 @@ unlimited-time/
     ├── home.html          # Menu chính của Game (Đặt tên, Tạo/Tham gia Server)
     ├── marketplace.html   # Chợ Đen giao dịch vật phẩm trước trận đấu
     └── chat.html          # Sảnh chờ (Lobby) và Kênh chat thế giới thời gian thực
+
 🚀 HƯỚNG DẪN KHỞI ĐỘNG GAME SERVER (DÀNH CHO CHỦ PHÒNG)
 Để tự chạy một máy chủ Local và trải nghiệm game, cậu thực hiện theo các bước sau:
 
