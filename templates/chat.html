@@ -1,136 +1,145 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlimited Time - Sảnh Chờ & Trận Đấu</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans h-screen flex flex-col p-4 max-w-2xl mx-auto justify-between space-y-4">
 
-{% block content %}
-<div class="max-w-3xl mx-auto h-full flex flex-col justify-between space-y-4">
-    
     <div class="flex justify-between items-center bg-slate-950 border border-slate-800 p-4 rounded-xl shadow-md">
-        <div class="space-y-1">
-            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Trạng thái: Đang kết nối</span>
+        <div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center space-x-1.5">
+                <span id="statusDot" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <span id="statusText">Trạng thái: Trong Phòng Chờ</span>
             </div>
             <h3 class="text-sm font-extrabold text-slate-200">
-                SERVER ID: <span class="text-cyan-400 font-mono tracking-wider select-all">{{ server_id }}</span>
+                SERVER ID: <span id="displayId" class="text-cyan-400 font-mono select-all"></span>
             </h3>
         </div>
         <div class="text-xs text-slate-400 font-medium bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg">
-            Tài khoản: <span class="text-emerald-400 font-bold">{{ username }}</span>
+            Tên: <span id="displayUser" class="text-emerald-400 font-bold"></span>
         </div>
     </div>
 
-    <div id="lobbyView" class="{% if is_started == 1 %}hidden{% endif %} flex-1 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-6 text-center space-y-6 shadow-xl">
-        <div class="relative">
-            <div class="w-20 h-20 bg-slate-900 border border-slate-800 rounded-2xl flex items-center justify-center text-slate-600 animate-bounce">
-                <i class="fa-solid fa-hourglass-half text-3xl text-cyan-500"></i>
+    <div id="lobbyView" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-center space-y-4 shadow-md">
+        <div class="flex items-center justify-center space-x-2 text-cyan-400 text-sm font-bold">
+            <i class="fa-solid fa-hourglass-half animate-bounce"></i>
+            <h2 class="uppercase tracking-wide">Sảnh Chờ Trực Tuyến</h2>
+        </div>
+        <p class="text-[11px] text-slate-400">Hãy gửi mã phòng phía trên cho đồng đội. Cậu có thể chat chém gió ở khung bên dưới trong lúc đợi!</p>
+
+        <div id="actionArea" class="w-full max-w-xs mx-auto pt-2 border-t border-slate-900">
+            </div>
+    </div>
+
+    <div id="chatView" class="flex-1 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col min-h-0 shadow-xl overflow-hidden">
+        <div id="messageBox" class="flex-1 overflow-y-auto p-4 space-y-3">
+            <div id="systemNotice" class="text-center py-2">
+                <span class="text-[10px] bg-amber-950/40 text-amber-400 border border-amber-900/30 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">
+                    Kênh chat phòng chờ đã mở - Hãy gáy trước trận đi nào!
+                </span>
             </div>
         </div>
         
-        <div class="space-y-2">
-            <h2 class="text-xl font-bold text-slate-200 uppercase tracking-wide">Sảnh Chờ Trực Tuyến</h2>
-            <p class="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
-                Hãy gửi mã <span class="text-cyan-400 font-mono px-1 py-0.5 bg-slate-900 rounded border border-slate-800">{{ server_id }}</span> cho bạn bè để cùng tham gia vào phòng chờ này.
-            </p>
-        </div>
-
-        <div class="w-full max-w-xs pt-4 border-t border-slate-900">
-            {% if is_owner %}
-                <button onclick="triggerStartRoom()" class="w-full bg-cyan-500 text-slate-950 font-extrabold text-xs uppercase tracking-wider py-3 rounded-xl hover:bg-cyan-400 hover:scale-105 transition-all shadow-lg shadow-cyan-500/10">
-                    Kích Hoạt Bắt Đầu (Start)
-                </button>
-                <p class="text-[10px] text-cyan-500/60 mt-2 font-medium">Cậu là Chủ sở hữu. Hãy bấm nút khi mọi người đã sẵn sàng.</p>
-            {% else %}
-                <div class="bg-slate-900 border border-slate-800 text-slate-400 text-xs font-semibold py-3 rounded-xl select-none animate-pulse">
-                    Đang đợi Chủ Server bắt đầu...
-                </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <div id="chatView" class="{% if is_started == 0 %}hidden{% endif %} flex-1 bg-slate-950 border border-slate-800 rounded-2xl flex flex-col min-h-0 shadow-xl overflow-hidden">
-        <div id="messageBox" class="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
-            <div class="text-center py-2"><span class="text-[10px] bg-cyan-950/40 text-cyan-400 border border-cyan-900/30 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">Phòng chat đã được kích hoạt</span></div>
-        </div>
-        
-        <form id="chatForm" onsubmit="handleSendMessage(event)" class="p-3 bg-slate-950 border-t border-slate-900 flex gap-2">
-            <input type="text" id="chatInput" placeholder="Nhập nội dung trò chuyện..." autocomplete="off" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
-            <button type="submit" class="bg-cyan-600 text-slate-950 font-bold text-xs uppercase tracking-wider px-5 rounded-xl hover:bg-cyan-500 transition-all flex items-center justify-center">
+        <form id="chatForm" onsubmit="sendMessage(event)" class="p-3 bg-slate-950 border-t border-slate-900 flex gap-2">
+            <input type="text" id="chatInput" placeholder="Nhập nội dung trò chuyện..." autocomplete="off" class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-100 focus:outline-none focus:border-cyan-500">
+            <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold text-xs px-4 rounded-xl transition-all">
                 <i class="fa-solid fa-paper-plane"></i>
             </button>
         </form>
     </div>
 
-</div>
+    <script>
+        // Cấu hình Firebase
+        const firebaseConfig = { databaseURL: "https://unlimited-time-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-<script>
-    const serverId = "{{ server_id }}";
-    const username = "{{ username }}";
-    
-    // Khởi tạo đường truyền dẫn WebSocket kết nối trực tiếp lên Server dựa theo ID Server
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const socket = new WebSocket(`${wsProtocol}${window.location.host}/ws/chat/${serverId}`);
+        // Lấy thông tin URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const serverId = urlParams.get('server_id') || 'UT-ROOM';
+        const role = urlParams.get('role') || 'player';
+        const username = urlParams.get('username') || 'Player';
 
-    // Sự kiện lắng nghe luồng dữ liệu từ Server đẩy về real-time
-    socket.onmessage = function(event) {
-        const rawData = event.data;
+        document.getElementById('displayId').innerText = serverId;
+        document.getElementById('displayUser').innerText = username;
 
-        // Nếu nhận được tín hiệu kích hoạt mở phòng từ Chủ phòng phát ra
-        if (rawData === "__ROOM_HAS_STARTED__") {
-            document.getElementById('lobbyView').classList.add('hidden');
-            document.getElementById('chatView').classList.remove('hidden');
-            return;
+        const roomRef = database.ref('rooms/' + serverId);
+
+        // Hiển thị nút bấm trong phòng chờ dựa theo vai trò
+        const actionArea = document.getElementById('actionArea');
+        if (role === 'owner') {
+            actionArea.innerHTML = `
+                <button onclick="startMatch()" class="w-full bg-cyan-500 text-slate-950 font-extrabold text-xs uppercase py-2.5 rounded-xl hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/10">BẮT ĐẦU TRẬN ĐẤU (START)</button>
+                <p class="text-[9px] text-cyan-500/60 mt-1.5">Cậu là Chủ phòng. Hãy bấm nút khi đồng đội đã sẵn sàng.</p>
+            `;
+            // Cài đặt trạng thái ban đầu là chưa bắt đầu trận
+            roomRef.child('started').transaction((currentValue) => {
+                if (currentValue === null) return false;
+            });
+        } else {
+            actionArea.innerHTML = `
+                <div class="bg-slate-900 border border-slate-800 text-slate-400 text-[11px] font-semibold py-2.5 rounded-xl animate-pulse">ĐANG ĐỢI CHỦ PHÒNG BẤM START...</div>
+            `;
         }
 
-        // Xử lý hiển thị tin nhắn chat bình thường
-        try {
-            const parsedData = JSON.parse(rawData);
-            renderMessage(parsedData.user, parsedData.msg);
-        } catch (e) {
-            // Đề phòng trường hợp chuỗi string thuần túy không phải JSON
-            renderMessage("Hệ thống", rawData);
+        // Theo dõi trạng thái trận đấu từ Firebase Real-time
+        roomRef.child('started').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                // Khi chủ phòng bấm nút: Ẩn phần sảnh chờ phía trên đi
+                document.getElementById('lobbyView').classList.add('hidden');
+                
+                // Đổi đèn tín hiệu trạng thái sang màu xanh lá cây chiến đấu
+                document.getElementById('statusDot').className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+                document.getElementById('statusText').innerText = "Trạng thái: Trận Đấu Đã Bắt Đầu";
+                
+                // Thay đổi dòng thông báo hệ thống trong hộp chat
+                document.getElementById('systemNotice').innerHTML = `
+                    <span class="text-[10px] bg-emerald-950/40 text-emerald-400 border border-emerald-900/30 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">
+                        Trận đấu chính thức kích hoạt! Chiến thôi!
+                    </span>
+                `;
+            }
+        });
+
+        // Lắng nghe luồng tin nhắn chat đổ về (Hỗ trợ chat ngay trong lúc chờ)
+        roomRef.child('messages').on('child_added', (snapshot) => {
+            const data = snapshot.val();
+            const messageBox = document.getElementById('messageBox');
+            const isMe = (data.user === username);
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-0.5`;
+            msgDiv.innerHTML = `
+                <span class="text-[10px] font-bold ${isMe ? 'text-emerald-400' : 'text-cyan-400'} px-1">${data.user}</span>
+                <div class="max-w-[85%] text-xs px-3 py-2 rounded-2xl ${isMe ? 'bg-emerald-600 text-slate-950 font-medium rounded-tr-none' : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-tl-none'} break-all">${data.msg}</div>
+            `;
+            messageBox.appendChild(msgDiv);
+            messageBox.scrollTop = messageBox.scrollHeight;
+        });
+
+        // Hàm xử lý khi Chủ phòng bấm nút START
+        function startMatch() {
+            roomRef.child('started').setValue(true);
         }
-    };
 
-    // Hàm tạo thẻ div và chèn tin nhắn mới nổ vào đáy hộp chat
-    function renderMessage(sender, text) {
-        const messageBox = document.getElementById('messageBox');
-        const isMe = (sender === username);
-        
-        const msgDiv = document.createElement('div');
-        msgDiv.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-0.5`;
-        
-        msgDiv.innerHTML = `
-            <span class="text-[10px] font-bold ${isMe ? 'text-emerald-400' : 'text-cyan-400'} px-1">${sender}</span>
-            <div class="max-w-[85%] text-xs px-3 py-2 rounded-2xl ${isMe ? 'bg-emerald-600 text-slate-950 font-medium rounded-tr-none' : 'bg-slate-900 text-slate-200 border border-slate-800 rounded-tl-none'} break-all">
-                ${text}
-            </div>
-        `;
-        
-        messageBox.appendChild(msgDiv);
-        // Tự động cuộn khung chat xuống đáy cùng để thấy tin nhắn mới nhất
-        messageBox.scrollTop = messageBox.scrollHeight;
-    }
-
-    // Hàm phóng tín hiệu kích hoạt phòng lên server khi Chủ phòng bấm nút Start
-    function triggerStartRoom() {
-        socket.send("__START_ROOM__");
-    }
-
-    // Hàm đóng gói nội dung chữ và bắn qua WebSocket
-    function handleSendMessage(event) {
-        event.preventDefault();
-        const input = document.getElementById('chatInput');
-        const messageText = input.value.trim();
-        
-        if (!messageText) return;
-
-        const payload = {
-            user: username,
-            msg: messageText
-        };
-
-        // Bắn chuỗi JSON lên server xử lý phát tán
-        socket.send(JSON.stringify(payload));
-        input.value = "";
-    }
-</script>
-{% endblock %}
+        // Hàm xử lý gửi tin nhắn chat
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('chatInput');
+            if (!input.value.trim()) return;
+            
+            roomRef.child('messages').push({
+                user: username,
+                msg: input.value.trim()
+            });
+            input.value = "";
+        }
+    </script>
+</body>
+</html>
